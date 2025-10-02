@@ -3,3 +3,4 @@ pytrends
 pandas
 requests
 python-dateutil
+altair
