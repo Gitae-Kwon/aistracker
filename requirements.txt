@@ -1,5 +1,5 @@
-matplotlib
+streamlit
+pytrends
 pandas
 requests
 python-dateutil
-pytrends
