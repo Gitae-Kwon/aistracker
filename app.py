@@ -70,19 +70,27 @@ def fetch_wiki_pageviews(page_title, start, end, project="en.wikipedia", access=
     API: /metrics/pageviews/per-article/{project}/{access}/{agent}/{article}/monthly/{start}/{end}
     start/end: YYYYMMDD 형식, 월별이면 YYYYMM01 권장
     """
-    # YYYYMM01 포맷 만들기
     start_dt = pd.to_datetime(start)
     end_dt = pd.to_datetime(end)
     start_str = start_dt.strftime("%Y%m01")
-    # end는 포함형, 마지막 달의 말일로 보정
     end_last = (end_dt + relativedelta(day=31)).strftime("%Y%m%d")
 
     url = (
         f"https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/"
         f"{project}/{access}/{agent}/{page_title}/monthly/{start_str}/{end_last}"
     )
-    r = requests.get(url, timeout=30)
-    r.raise_for_status()
+    
+    try:
+        # API 요청 보내기
+        r = requests.get(url, timeout=30)
+        r.raise_for_status()  # HTTP 오류 발생 시 예외 발생
+    except requests.exceptions.HTTPError as http_err:
+        print(f"HTTP error occurred: {http_err}")  # 상세 에러 메시지 출력
+        return pd.Series(dtype="float64")  # 에러 발생 시 빈 Series 반환
+    except Exception as err:
+        print(f"Other error occurred: {err}")  # 다른 예외 처리
+        return pd.Series(dtype="float64")
+    
     items = r.json().get("items", [])
     if not items:
         return pd.Series(dtype="float64")
